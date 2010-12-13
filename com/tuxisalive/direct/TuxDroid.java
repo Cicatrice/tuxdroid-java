@@ -143,30 +143,6 @@ public abstract class TuxDroid {
 /**
  * Callbacks ; those methods should be abstract, and defined in a better class
  * I'm too lazy to create a new class for test right know.
- 
-	public void on_left_wing_down(){
-		System.out.println("!! Left wing down");
-	}
-
-	public void on_right_wing_down(){
-		System.out.println("!! Right wing down");
-	}
-
-	public void on_left_wing_up(){
-		System.out.println("!! Left wing up");
-	}
-
-	public void on_right_wing_up(){
-		System.out.println("!! Right wing up");
-	}
-
-	public void on_head_button_up(){
-		System.out.println("!! Head button up");
-	}
-
-	public void on_head_button_down(){
-		System.out.println("!! Head button down");
-	}
-	*/
+ */
 	public abstract void on_event(String msg);
 }
