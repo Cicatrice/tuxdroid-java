@@ -1,3 +1,5 @@
+package com.tuxisalive.direct;
+
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.Platform;
@@ -11,11 +13,11 @@ import com.sun.jna.Structure;
  *	Keep It Simple and Stupid !
  *
  *	@author Geoffrey Gouez
- *	@version 0.2
+ *	@version 0.3
  *
  **/
 
-public class TuxDroid {
+public abstract class TuxDroid {
 	public interface TuxDriver extends Library {
 		TuxDriver INSTANCE = (TuxDriver) Native.loadLibrary("tuxdriver", TuxDriver.class);
 		public static boolean started = true;
@@ -43,8 +45,13 @@ public class TuxDroid {
 		/**
 		 * Callback management (buttons and other events)
  		 **/
-		public interface EventCallback extends com.sun.jna.Callback {
-			public boolean callback(String msg);
+		public abstract class EventCallback implements com.sun.jna.Callback {
+			protected TuxDroid tuxdroid;
+			public EventCallback(TuxDroid td){
+				super();
+				tuxdroid = td;
+			}
+			public abstract boolean callback(String msg);
 		}
 		public int TuxDrv_SetStatusCallback(EventCallback ec);
 
@@ -62,80 +69,73 @@ public class TuxDroid {
 		//TuxDrvError TuxDrv_SoundReflash(char *tracks);
 	}
 	
-	public static void start(){
+	public void start(){
 		new Thread(){
 			public void run(){
 				TuxDriver.INSTANCE.TuxDrv_Start();
 			}
 		}.start();
 
-		TuxDriver.INSTANCE.TuxDrv_SetStatusCallback(new TuxDriver.EventCallback(){
+		TuxDriver.INSTANCE.TuxDrv_SetStatusCallback(new TuxDriver.EventCallback(this){
 			public boolean callback(String msg){
-				// I'm sure there is a way to retrieve the double value at the end of the string
-				if(msg.matches("left_wing_button:bool:True.*"))	TuxDroid.on_left_wing_down();
-				else if(msg.matches("left_wing_button:bool:False.*")) TuxDroid.on_left_wing_up();
-				else if(msg.matches("right_wing_button:bool:True.*")) TuxDroid.on_right_wing_down();
-				else if(msg.matches("right_wing_button:bool:False.*")) TuxDroid.on_right_wing_up();
-				else if(msg.matches("head_button:bool:True.*")) TuxDroid.on_head_button_down();
-				else if(msg.matches("head_button:bool:False.*")) TuxDroid.on_head_button_up();
-				else System.out.println("Not registered event : "+msg);
+				tuxdroid.on_event(msg);
 				return true;
 			}
 		});
 		
 	}
 	
-	public static void stop(){
+	public void stop(){
 		TuxDriver.INSTANCE.TuxDrv_Stop();
 	}
 
-	public static void set_log_level(int level){
+	public void set_log_level(int level){
 		TuxDriver.INSTANCE.TuxDrv_SetLogLevel(level);
 	}
 
-	public static void set_log_target(int target){
+	public void set_log_target(int target){
 		TuxDriver.INSTANCE.TuxDrv_SetLogTarget(target);
 	}
 
-	public static void reset(){
+	public void reset(){
 		if(TuxDriver.started)
 		TuxDriver.INSTANCE.TuxDrv_ResetPositions();
 	}
 
-	public static void right_spin(int count){
+	public void right_spin(int count){
 		TuxDriver.INSTANCE.TuxDrv_PerformCommand(0.0,"TUX_CMD:SPINNING:RIGHT_ON:"+count);
 	}
 	
-	public static void left_spin(int count){
+	public void left_spin(int count){
 		TuxDriver.INSTANCE.TuxDrv_PerformCommand(0.0,"TUX_CMD:SPINNING:LEFT_ON:"+count);
 	}
 	
-	public static void wings_down(){
+	public void wings_down(){
 		if(TuxDriver.started)
 		TuxDriver.INSTANCE.TuxDrv_PerformCommand(0.0, "TUX_CMD:FLIPPERS:DOWN");
 	}
 
-	public static void wings_up(){
+	public void wings_up(){
 		if(TuxDriver.started)
 		TuxDriver.INSTANCE.TuxDrv_PerformCommand(0.0, "TUX_CMD:FLIPPERS:UP");
 	}
 
-	public static void open_eyes(){
+	public void open_eyes(){
 		if(TuxDriver.started)
 		TuxDriver.INSTANCE.TuxDrv_PerformCommand(0.0, "TUX_CMD:EYES:OPEN");
 	}
 
-	public static void close_eyes(){
+	public void close_eyes(){
 		if(TuxDriver.started)
 		TuxDriver.INSTANCE.TuxDrv_PerformCommand(0.0, "TUX_CMD:EYES:CLOSE");
 	}
 
-	public static void open_mouth(){
+	public void open_mouth(){
 		if(TuxDriver.started)
 		TuxDriver.INSTANCE.TuxDrv_PerformCommand(0.0, "TUX_CMD:MOUTH:OPEN");
 	}
 
-	public static void close_mouth(){
+	public void close_mouth(){
 		if(TuxDriver.started)
 		TuxDriver.INSTANCE.TuxDrv_PerformCommand(0.0, "TUX_CMD:MOUTH:CLOSE");
 	}
@@ -143,55 +143,30 @@ public class TuxDroid {
 /**
  * Callbacks ; those methods should be abstract, and defined in a better class
  * I'm too lazy to create a new class for test right know.
- */
-	public static void on_left_wing_down(/*double since*/){
+ 
+	public void on_left_wing_down(){
 		System.out.println("!! Left wing down");
 	}
 
-	public static void on_right_wing_down(/*double since*/){
+	public void on_right_wing_down(){
 		System.out.println("!! Right wing down");
 	}
 
-	public static void on_left_wing_up(/*double since*/){
+	public void on_left_wing_up(){
 		System.out.println("!! Left wing up");
 	}
 
-	public static void on_right_wing_up(/*double since*/){
+	public void on_right_wing_up(){
 		System.out.println("!! Right wing up");
 	}
 
-	public static void on_head_button_up(/*double since*/){
+	public void on_head_button_up(){
 		System.out.println("!! Head button up");
 	}
 
-	public static void on_head_button_down(/*double since*/){
+	public void on_head_button_down(){
 		System.out.println("!! Head button down");
 	}
-	
-
-	public static void main(String[] args){
-		try{
-		/*light configuration to get debug logs*/
-		TuxDroid.set_log_level(TuxDriver.LOG_LEVEL_DEBUG);
-		TuxDroid.set_log_target(TuxDriver.LOG_TARGET_SHELL);
-
-		/*init connection and callbacks*/
-		TuxDroid.start();
-		TuxDroid.reset();
-
-		/*do some stuffs*/
-		TuxDroid.open_mouth();
-		Thread.sleep(100);
-		TuxDroid.left_spin(3);
-		Thread.sleep(1000);
-		TuxDroid.right_spin(3);
-		Thread.sleep(1000);
-
-		/*release hardware*/
-		TuxDroid.stop();
-		}
-		catch(Exception e){
-			e.printStackTrace();
-		}
-	}
+	*/
+	public abstract void on_event(String msg);
 }
