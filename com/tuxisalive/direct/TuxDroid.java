@@ -142,7 +142,7 @@ public abstract class TuxDroid {
 
 /**
  * Callbacks ; those methods should be abstract, and defined in a better class
- * I'm too lazy to create a new class for test right know.
+ * I'm too lazy to create a new class for test right now.
  */
 	public abstract void on_event(String msg);
 }
